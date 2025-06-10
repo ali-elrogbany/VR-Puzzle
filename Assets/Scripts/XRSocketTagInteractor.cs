@@ -9,8 +9,22 @@ public class XRSocketTagInteractor : XRSocketInteractor
 
     public ObjectColor targetColor;
 
+    [Header("Sound Effects")]
+    public AudioClip satisfiedSFX;
+    public AudioClip unsatisfiedSFX;
+
+    private AudioSource audioSource;
     private bool isSatisfied = false;
     private XRBaseInteractable lockedInteractable = null;
+
+    void Awake()
+    {
+        base.Awake();
+        // Get or add an AudioSource to this GameObject
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+    }
 
     public bool GetIsSatisfied()
     {
@@ -24,7 +38,6 @@ public class XRSocketTagInteractor : XRSocketInteractor
 
     public override bool CanSelect(XRBaseInteractable interactable)
     {
-        // Always allow selection — we’ll disable interaction manually later
         return base.CanSelect(interactable) && interactable.CompareTag(targetTag);
     }
 
@@ -44,37 +57,43 @@ public class XRSocketTagInteractor : XRSocketInteractor
             lockedInteractable = args.interactableObject as XRBaseInteractable;
             Debug.Log("Satisfied");
 
+            PlaySFX(satisfiedSFX);
             StartCoroutine(LockObjectAfterSnap(go, lockedInteractable));
         }
         else
         {
             Debug.Log("UnSatisfied");
+            PlaySFX(unsatisfiedSFX);
         }
     }
 
     private IEnumerator LockObjectAfterSnap(GameObject go, XRBaseInteractable interactable)
     {
-        // Wait for one frame to allow snapping to complete
         yield return new WaitForSeconds(1f);
 
-        // Disable grab interactable
         XRGrabInteractable grabInteractable = go.GetComponent<XRGrabInteractable>();
         if (grabInteractable != null)
         {
             grabInteractable.enabled = false;
         }
 
-        // Set Rigidbody to kinematic
         Rigidbody rb = go.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.isKinematic = true;
         }
 
-        // Ensure it stays selected in the socket
         if (interactionManager != null && interactable != null)
         {
             interactionManager.SelectEnter(this, interactable);
+        }
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 }
