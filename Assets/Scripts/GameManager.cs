@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -16,9 +17,12 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private GameObject successMenu;
     [SerializeField] private Button restartButton;
+    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private TMP_Text highScoreText;
 
     private int currentSuccesses = 0;
     private bool hasWon = false;
+    private float timer = 0f;
 
     private void Awake()
     {
@@ -30,20 +34,30 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
 
-        winSoundSource = GetComponent<AudioSource>();
+        if (winSoundSource == null)
+        {
+            winSoundSource = GetComponent<AudioSource>();
+        }
     }
 
     private void Start()
     {
         if (successMenu != null)
-        {
             successMenu.SetActive(false);
-        }
+
         if (restartButton != null)
-        {
             restartButton.onClick.AddListener(() => RestartGame());
-        }
+
         Time.timeScale = 1f;
+        timer = 0f;
+    }
+
+    private void Update()
+    {
+        if (!hasWon)
+        {
+            timer += Time.deltaTime;
+        }
     }
 
     public void RegisterSuccess()
@@ -71,6 +85,19 @@ public class GameManager : MonoBehaviour
 
         successMenu.SetActive(true);
         Debug.Log("🎉 You Win!");
+
+        float currentScore = Mathf.Round(timer * 100f) / 100f; // round to 2 decimal places
+        float bestScore = PlayerPrefs.GetFloat("HighScore", float.MaxValue);
+
+        scoreText.text = $"Time: {currentScore} s";
+
+        if (currentScore < bestScore)
+        {
+            bestScore = currentScore;
+            PlayerPrefs.SetFloat("HighScore", bestScore);
+        }
+
+        highScoreText.text = $"Best: {bestScore:F2} s";
 
         Time.timeScale = 0f;
     }
