@@ -19,6 +19,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text highScoreText;
+    [SerializeField] private GameObject gameUI;
+    [SerializeField] private TMP_Text currentScoreText;
 
     private int currentSuccesses = 0;
     private bool hasWon = false;
@@ -57,6 +59,11 @@ public class GameManager : MonoBehaviour
         if (!hasWon)
         {
             timer += Time.deltaTime;
+
+            if (currentScoreText != null)
+            {
+                currentScoreText.text = $"Time: {timer:F2} s";
+            }
         }
     }
 
@@ -83,10 +90,15 @@ public class GameManager : MonoBehaviour
             winSoundSource.PlayOneShot(winSFX);
         }
 
+        if (gameUI != null)
+        {
+            gameUI.SetActive(false);
+        }
+
         successMenu.SetActive(true);
         Debug.Log("🎉 You Win!");
 
-        float currentScore = Mathf.Round(timer * 100f) / 100f; // round to 2 decimal places
+        float currentScore = Mathf.Round(timer * 100f) / 100f;
         float bestScore = PlayerPrefs.GetFloat("HighScore", float.MaxValue);
 
         scoreText.text = $"Time: {currentScore} s";
