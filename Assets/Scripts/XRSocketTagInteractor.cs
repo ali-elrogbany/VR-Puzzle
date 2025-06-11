@@ -57,6 +57,11 @@ public class XRSocketTagInteractor : XRSocketInteractor
             lockedInteractable = args.interactableObject as XRBaseInteractable;
             Debug.Log("Satisfied");
 
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterSuccess();
+            }
+
             PlaySFX(satisfiedSFX);
             StartCoroutine(LockObjectAfterSnap(go, lockedInteractable));
         }
